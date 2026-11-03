@@ -1,0 +1,40 @@
+Server
+
+    Server is a entrypoint that a client(s) can use to connect with.
+    Server receives requests from those clients and sends responses to them.
+    Firstly, Server needs to be concurrent, because when a request is been processed,
+    the other ones cannot be waiting for this one to be finished.
+
+    Inside the Server implementation, there is a tcp layer built in which implements
+    the tcp protocol.
+
+    The Server is going to serve an entrypoint, where it will be listening for requests
+    and handle them.
+    serve -> listen -> handle -> response.
+
+    ## Request to a server
+
+    GET /coffees HTTP/1.1
+    Host: api.example.com
+    Accept: application/json
+
+    ## Server responds with:
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    [
+      {
+        "id": 1,
+        "name": "Espresso"
+      }
+    ]
+
+    ## What happens behind the scenes:
+
+        1. find api.example.com
+        2. Get its IP address using DNS
+        3. Establish a TCP connection to the IP address
+        4. Secure it with TLS
+        5. Send an http request
+        6. receive a http response
+        7. Show you the response
