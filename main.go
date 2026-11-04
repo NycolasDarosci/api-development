@@ -5,23 +5,41 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
+
+	"github.com/google/uuid"
 )
 
 type server struct {
 	addr string
 }
 
-var users = []string{"Jilmar", "Dagoberto", "Nilson"}
-
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Req = Method: %s, Path: %s, request_id: %s\n", r.Method, r.URL.Path, uuid.New().String())
 	switch r.Method {
 	case "GET":
 		if r.URL.Path == "/users" {
 			w.WriteHeader(http.StatusOK)
 			for _, u := range users {
-				fmt.Fprintln(w, u)
+				fmt.Fprintln(w, u.ID, u.Name)
 			}
+			return
 		}
+
+		// "/users/{id}"
+		parts := strings.Split(r.URL.Path, "/")
+		if len(parts) == 3 && parts[1] == "users" {
+			id := parts[2]
+			user, ok := users[id]
+			if !ok {
+				http.Error(w, fmt.Sprintf("user %s not found", id), http.StatusNotFound)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintln(w, user.ID, user.Name)
+			return
+		}
+
 	case "POST":
 		if r.URL.Path == "/users" {
 			body, err := io.ReadAll(r.Body)
@@ -29,17 +47,19 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 				return
 			}
-			if len(body) == 0 {
+			if string(body) == "" {
 				http.Error(w, "name is mandatory", http.StatusBadRequest)
 				return
 			}
-			users = append(users, string(body))
+
+			id := uuid.New().String()
+			users[id] = User{ID: id, Name: string(body)}
 
 			w.WriteHeader(http.StatusCreated)
-			fmt.Fprintln(w, "User created!")
+			fmt.Fprintln(w, fmt.Sprintf("User with id [%s] created!", id))
 		}
 	default:
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "not found", http.StatusNotFound)
 	}
 }
 
