@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -19,9 +20,17 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		if r.URL.Path == "/users" {
+			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
+
+			list := make([]User, 0, len(users))
 			for _, u := range users {
-				fmt.Fprintln(w, u.ID, u.Name)
+				//fmt.Fprintln(w, u.ID, u.Name)
+				list = append(list, u)
+			}
+			if err := json.NewEncoder(w).Encode(list); err != nil {
+				http.Error(w, "something got wrong!", http.StatusInternalServerError)
+				return
 			}
 			return
 		}
