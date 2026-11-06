@@ -1,8 +1,8 @@
 package main
 
 type User struct {
-	ID   string
-	Name string
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 var users = map[string]User{
