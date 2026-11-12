@@ -80,6 +80,39 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "something got wrong!", http.StatusInternalServerError)
 			}
 		}
+	case "PUT", "PATCH":
+		parts := strings.Split(r.URL.Path, "/")
+		if len(parts) == 3 && parts[1] == "users" {
+			id := parts[2]
+			if _, ok := users[id]; !ok {
+				http.Error(w, fmt.Sprintf("user [%s] not found", id), http.StatusNotFound)
+				return
+			}
+
+			body, err := io.ReadAll(r.Body)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			if string(body) == "" {
+				http.Error(w, "name is mandatory", http.StatusBadRequest)
+				return
+			}
+
+			var user User
+			if err = json.Unmarshal(body, &user); err != nil {
+				http.Error(w, "error unmarshalling!", http.StatusInternalServerError)
+				return
+			}
+			user.ID = id
+			users[id] = user
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			if err := json.NewEncoder(w).Encode(fmt.Sprintf("User with id [%s] updated!", id)); err != nil {
+				http.Error(w, "something got wrong!", http.StatusInternalServerError)
+			}
+		}
 	case "DELETE":
 		parts := strings.Split(r.URL.Path, "/")
 		if len(parts) == 3 && parts[1] == "users" {
