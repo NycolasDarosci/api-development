@@ -55,29 +55,28 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	case "POST":
 		if r.URL.Path == "/users" {
-			body, err := io.ReadAll(r.Body)
-			if err != nil {
-				log.Println(err)
+			var req CreateUserRequest
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+				http.Error(w, "error unmarshalling!", http.StatusBadRequest)
 				return
 			}
-			if string(body) == "" {
+
+			if req.Name == "" {
 				http.Error(w, "name is mandatory", http.StatusBadRequest)
 				return
 			}
 
-			var user User
-			if err = json.Unmarshal(body, &user); err != nil {
-				http.Error(w, "error unmarshalling!", http.StatusInternalServerError)
-				return
-			}
 			id := uuid.New().String()
-			user.ID = id
+			user := User{
+				ID:   id,
+				Name: req.Name,
+			}
 			users[id] = user
 
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusCreated)
-			if err := json.NewEncoder(w).Encode(fmt.Sprintf("User with id [%s] created!", id)); err != nil {
-				http.Error(w, "something got wrong!", http.StatusInternalServerError)
+			if err := json.NewEncoder(w).Encode(user); err != nil {
+				http.Error(w, "something got wrong!", http.StatusBadRequest)
 			}
 		}
 	case "PUT", "PATCH":

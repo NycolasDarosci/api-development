@@ -38,3 +38,9 @@ Server
         5. Send an http request
         6. receive a http response
         7. Show you the response
+
+
+Encode and Decode
+
+    users    -> Json -> API -> Go -> Json
+    http API      decoding     encoding

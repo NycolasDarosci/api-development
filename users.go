@@ -5,6 +5,10 @@ type User struct {
 	Name string `json:"name"`
 }
 
+type CreateUserRequest struct {
+	Name string `json:"name"`
+}
+
 var users = map[string]User{
 	"595ea76c-b130-4c3b-9afa-454a17d90d60": {
 		ID:   "595ea76c-b130-4c3b-9afa-454a17d90d60",
