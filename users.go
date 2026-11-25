@@ -3,10 +3,13 @@ package main
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+	// password attribute but without sending it to clients
+	Password string `json:"-"`
 }
 
 type CreateUserRequest struct {
-	Name string `json:"name"`
+	Name     string `json:"name"`
+	Password string `json:"-"`
 }
 
 var users = map[string]User{
